@@ -2,6 +2,7 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class Entity {
+    //standard info
     private String entity;
     private String title;
     private int hP;
@@ -16,8 +17,18 @@ public class Entity {
     private int baseCR;
     private int ultCharge;
 
+    //buff mech
+    private int boostATKmult;
+    private int boostATKdur;
+
+
     Random r = new Random();
 
+    public void indent()
+    {
+        System.out.println();
+        System.out.println();
+    }
 
     public Entity(String name, String title, int maxHP, int ATK, int DEF, int luck, int criticalRate, String weapon)
     {
@@ -38,7 +49,8 @@ public class Entity {
 
         System.out.println(name);
         System.out.println("-------" + title + "-------");
-        System.out.println("HP: " + maxHP + "   |   ATK: " + ATK + "   |   DEF: " + DEF);
+        System.out.println("HP: " + maxHP + "/" + maxHP + "   |   ATK: " + ATK + "   |   DEF: " + DEF);
+        indent();
     }
 
 
@@ -48,9 +60,9 @@ public class Entity {
     //stat updates
     public void dmgReceived(int RawDMG) {
         int incomingDMG = (int) (RawDMG * (100 - dEF) / 100.0);
-        if (luck <= r.nextInt(101))
+        if (luck >= r.nextInt(101))
         {
-            System.out.println("You Dodged " + incomingDMG + " DMG!");
+            System.out.println(entity +  " dodged " + incomingDMG + " DMG!");
         }
         else
         {
@@ -64,12 +76,19 @@ public class Entity {
     {
         System.out.println(entity);
         System.out.println("-------" + title + "-------");
-        System.out.println("HP: " + hP + "   |   ATK: " + aTK + "   |   DEF: " + dEF);
+        System.out.println("HP: " + hP + "/" + baseHP + "   |   ATK: " + aTK + "   |   DEF: " + dEF);
         if (hP <= 0)
         {
             System.out.println(entity + " has been slain...");
         }
+        indent();
     }
+
+    public void buffDetails()
+    {
+
+    }
+
 
     //permanent stat change
     public void statMutation(int HP, int ATK, int DEF, int luck, int criticalRate)
@@ -111,6 +130,7 @@ public class Entity {
         System.out.println(name);
         System.out.println("-------" + title + "-------");
         System.out.println("HP: " + maxHP + "   |   ATK: " + ATK + "   |   DEF: " + DEF);
+        indent();
     }
 
 
@@ -121,6 +141,7 @@ public class Entity {
     public int attackM1(int variance, int base, int multiplier)
     {
         //used to randomize base ATK
+        System.out.println(entity + " used basic attack!");
         int dMG = (int)((multiplier) * (aTK + base) * ((r.nextInt(80 - variance, 80 + variance+1)) / 100.0));
         int generated_Percent = r.nextInt(101);
         if (cR >= generated_Percent)
@@ -128,12 +149,15 @@ public class Entity {
             System.out.println("Crit!");
             dMG *= 2;
         }
+
         System.out.println(entity + " dealt " + dMG + " DMG!");
+        indent();
         return(dMG);
     }
 
     public void healM2(int percent, int variance, int base, int multiplier)
     {
+        System.out.println(entity + " is healing!");
         int healing = (int)((multiplier) * (baseHP + base) * ((r.nextInt(percent - variance, percent+variance+1)  / 100.0)));
         int generated_Percent = r.nextInt(101);
         if (luck >= generated_Percent)
@@ -154,14 +178,12 @@ public class Entity {
     }
 
     //code this such that during buff rest will apply right after
-    public int boostDMGM3(int multiplier, int duration)
+    public void boostDMGM3(int multiplier, int duration)
     {
-        if (duration > 0)
-        {
-            duration -= 1;
-            return(multiplier);
-        }
-        return(0);
+        System.out.println(entity + " is buffing!");
+        System.out.println(entity + " now deals x" + multiplier + " DMG for " + duration + " rounds!");
+        boostATKmult = multiplier;
+        boostATKdur = duration;
     }
 
 
@@ -173,6 +195,7 @@ public class Entity {
     public int nukeU1(int variance, int base, int multiplier)
     {
         //triple attack but takes personal dmg
+        System.out.println("Nuke Incoming! " + entity + " has used their ultimate!");
         int dMG = (int)((3 * multiplier) * (aTK + base) * ((r.nextInt(80 - variance, 80 + variance+1)) / 100.0));
         int generated_Percent = r.nextInt(101);
         if (cR >= generated_Percent)
@@ -181,7 +204,26 @@ public class Entity {
             dMG *= 2;
         }
         System.out.println(entity + " dealt " + dMG + " Nuke DMG!");
+        dmgReceived(dMG/5);
         return(dMG);
     }
+
+    public int swapHPU2(int targetHP)
+    {
+        //swap HP
+        System.out.println("S-Witch-eroo! " + entity + " has used their ultimate!");
+        System.out.println("HP has been swapped!");
+
+        int casterHP = hP;
+        hP = targetHP;
+        statsCurrent();
+        return(casterHP);
+    }
+        //follow up HP swap
+        private void enemySwapHPU2(int HPChange)
+        {
+            hP = HPChange;
+            statsCurrent();
+        }
 
 }
