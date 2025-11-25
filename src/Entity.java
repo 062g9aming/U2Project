@@ -1,5 +1,4 @@
 import java.util.Random;
-import java.util.Scanner;
 
 public class Entity {
     //standard info
@@ -15,11 +14,11 @@ public class Entity {
     private int baseDEF;
     private int baseLuck;
     private int baseCR;
-    private int ultCharge;
+    private int ultCharge = 0;
 
     //buff mech
-    private int boostATKmult;
-    private int boostATKdur;
+    private int boostATKmult = 1;
+    private int boostATKdur = 0;
 
 
     Random r = new Random();
@@ -57,10 +56,14 @@ public class Entity {
 
 
 
-    //stat updates
+    //stat updates/info
     public void dmgReceived(int RawDMG) {
         int incomingDMG = (int) (RawDMG * (100 - dEF) / 100.0);
-        if (luck >= r.nextInt(101))
+        if (RawDMG == 0)
+        {
+            System.out.println(entity + " took no DMG!");
+        }
+        else if(luck >= r.nextInt(101))
         {
             System.out.println(entity +  " dodged " + incomingDMG + " DMG!");
         }
@@ -76,7 +79,8 @@ public class Entity {
     {
         System.out.println(entity);
         System.out.println("-------" + title + "-------");
-        System.out.println("HP: " + hP + "/" + baseHP + "   |   ATK: " + aTK + "   |   DEF: " + dEF);
+        System.out.println("HP: " + hP + "/" + baseHP + "   |   ATK: " + aTK + "   |   DEF: " + dEF + "   |   Ult: " + ultCharge + "/5");
+        buffDetails();
         if (hP <= 0)
         {
             System.out.println(entity + " has been slain...");
@@ -84,10 +88,33 @@ public class Entity {
         indent();
     }
 
+
+    public void turnEnd()
+    {
+        ultCharge++;
+        boostATKdur --;
+        if (boostATKdur < 1)
+        {
+            boostATKmult = 1;
+        }
+    }
+
+
     public void buffDetails()
     {
-
+        if (boostATKdur > 0)
+        {
+            System.out.println("ATK boost: x" + boostATKmult + "   Duration: " + boostATKdur + " rounds");
+        }
     }
+
+
+    public int returnHP()
+    {
+        return(hP);
+    }
+
+
 
 
     //permanent stat change
@@ -140,7 +167,9 @@ public class Entity {
     //movesets
     public int attackM1(int variance, int base, int multiplier)
     {
+
         //used to randomize base ATK
+        multiplier *= boostATKmult;
         System.out.println(entity + " used basic attack!");
         int dMG = (int)((multiplier) * (aTK + base) * ((r.nextInt(80 - variance, 80 + variance+1)) / 100.0));
         int generated_Percent = r.nextInt(101);
@@ -184,6 +213,7 @@ public class Entity {
         System.out.println(entity + " now deals x" + multiplier + " DMG for " + duration + " rounds!");
         boostATKmult = multiplier;
         boostATKdur = duration;
+        statsCurrent();
     }
 
 
@@ -191,21 +221,36 @@ public class Entity {
 
 
     //ultset
-
-    public int nukeU1(int variance, int base, int multiplier)
+    public void chargeUlt(int amount)
     {
-        //triple attack but takes personal dmg
-        System.out.println("Nuke Incoming! " + entity + " has used their ultimate!");
-        int dMG = (int)((3 * multiplier) * (aTK + base) * ((r.nextInt(80 - variance, 80 + variance+1)) / 100.0));
-        int generated_Percent = r.nextInt(101);
-        if (cR >= generated_Percent)
+        if (ultCharge <= 5)
         {
-            System.out.println("Crit!");
-            dMG *= 2;
+            ultCharge += amount;
         }
-        System.out.println(entity + " dealt " + dMG + " Nuke DMG!");
-        dmgReceived(dMG/5);
-        return(dMG);
+    }
+
+
+    public int nukeU1(int variance, int base, int multiplier, int cost)
+    {
+        if (cost <= ultCharge)
+        {
+            //triple attack but takes personal dmg
+            System.out.println("Nuke Incoming! " + entity + " has used their ultimate!");
+            int dMG = (int)((3 * multiplier) * (aTK + base) * ((r.nextInt(80 - variance, 80 + variance+1)) / 100.0));
+            int generated_Percent = r.nextInt(101);
+            if (cR >= generated_Percent)
+            {
+                System.out.println("Crit!");
+                dMG *= 2;
+            }
+            System.out.println(entity + " dealt " + dMG + " Nuke DMG!");
+            dmgReceived(dMG/5);
+            ultCharge -= cost;
+            return(dMG);
+        }
+        System.out.println(entity + " has insufficient charge! Resorting to Ult. Charge!");
+        ultCharge ++;
+        return(0);
     }
 
     public int swapHPU2(int targetHP)
@@ -220,7 +265,7 @@ public class Entity {
         return(casterHP);
     }
         //follow up HP swap
-        private void enemySwapHPU2(int HPChange)
+        public void enemySwapHPU2(int HPChange)
         {
             hP = HPChange;
             statsCurrent();
