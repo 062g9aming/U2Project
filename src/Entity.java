@@ -113,6 +113,10 @@ public class Entity {
     {
         return(hP);
     }
+    public int returnUltCharge()
+    {
+        return(ultCharge);
+    }
 
 
 
@@ -245,24 +249,35 @@ public class Entity {
             }
             System.out.println(entity + " dealt " + dMG + " Nuke DMG!");
             dmgReceived(dMG/5);
-            ultCharge -= cost;
+            ultCharge -= (cost + 1);
             return(dMG);
         }
-        System.out.println(entity + " has insufficient charge! Resorting to Ult. Charge!");
-        ultCharge ++;
-        return(0);
+        else
+        {
+            System.out.println(entity + " has insufficient charge! Resorting to Ult. Charge!");
+            ultCharge ++;
+            return(0);}
     }
 
-    public int swapHPU2(int targetHP)
+    public int swapHPU2(int targetHP, int cost)
     {
-        //swap HP
-        System.out.println("S-Witch-eroo! " + entity + " has used their ultimate!");
-        System.out.println("HP has been swapped!");
+        if (cost <= ultCharge) {
+            //swap HP
+            System.out.println("S-Witch-eroo! " + entity + " has used their ultimate!");
+            System.out.println("HP has been swapped!");
 
-        int casterHP = hP;
-        hP = targetHP;
-        statsCurrent();
-        return(casterHP);
+            int casterHP = hP;
+            hP = targetHP;
+            statsCurrent();
+            ultCharge -= (cost + 1);
+            return (casterHP);
+        }
+        else
+        {
+            System.out.println(entity + " has insufficient charge! Resorting to Ult. Charge!");
+            ultCharge ++;
+            return(0);
+        }
     }
         //follow up HP swap
         public void enemySwapHPU2(int HPChange)
